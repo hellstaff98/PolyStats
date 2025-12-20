@@ -10,7 +10,7 @@ class DatabaseHelper:
                  max_overflow: int = 10,
                  pool_size: int = 5
                  ):
-        self.engine = create_async_engine(url=url, echo=echo, echo_pool=echo_pool, max_overflow=max_overflow, pool_size=pool_size)
+        self.engine = create_async_engine(url=url, echo=echo, max_overflow=max_overflow, pool_size=pool_size)
         self.session_factory = async_sessionmaker(
             bind=self.engine,
             autoflush=False,
@@ -29,6 +29,6 @@ db_helper = DatabaseHelper(
     url=str(settings.db.url),
     echo=settings.db.echo,
     echo_pool=settings.db.echo_pool,
-    max_overflow=settings.db.max_overflow,
-    pool_size=settings.db.pool_size,
+    max_overflow=10,
+    pool_size=5,
 )
