@@ -25,7 +25,6 @@ class SQLAlchemyUserDatabase(SQLAlchemyUserDatabaseGeneric):
 
 
 class User(Base, IdIntPkMixin, SQLAlchemyBaseUserTable[int]):
-    __tablename__ = 'users'
     access_tokens: Mapped[list["AccessToken"]] = relationship(
         back_populates="user",
     )

@@ -40,21 +40,11 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, UserIdType]):
         user: User,
         request: Optional["Request"] = None,
     ):
-        if self.background_tasks:
-            self.background_tasks.add_task(
-                FastAPICache.clear,
-                namespace=settings.cache.namespace.users_list,
-            )
-        else:
-            await FastAPICache.clear(
-                namespace=settings.cache.namespace.users_list,
-            )
+        
         log.warning(
             "User %r has registered.",
             user.id,
         )
-        await send_new_user_notification(user)
-
     # async def on_after_forgot_password(
     #     self,
     #     user: User,

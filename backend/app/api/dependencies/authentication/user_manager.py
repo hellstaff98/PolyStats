@@ -15,9 +15,5 @@ async def get_user_manager(
         "SQLAlchemyUserDatabase",
         Depends(get_users_db),
     ],
-    background_tasks: BackgroundTasks,
 ):
-    yield UserManager(
-        users_db,
-        background_tasks=background_tasks,
-    )
+    yield UserManager(users_db)
