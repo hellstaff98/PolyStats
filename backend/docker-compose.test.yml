@@ -1,0 +1,25 @@
+services:
+  test_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d test_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  test_app:
+    build:
+      context: .
+      dockerfile: docker-build/app/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:password@test_db:5432/test_db
+    depends_on:
+      test_db:
+        condition: service_healthy
+    # Мы оставляем ваш ENTRYPOINT со скриптом,
+    # но переопределяем только финальную команду запуска
+    command: [ "pytest", "app/tests" ]
