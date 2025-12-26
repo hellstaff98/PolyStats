@@ -19,7 +19,9 @@ main_app = FastAPI(
 )
 main_app.include_router(api_router, prefix=settings.api.prefix)
 
-
+@main_app.get('/')
+def root():
+    return {"message": "приветик"}
 
 if __name__ == '__main__':
     uvicorn.run("main:main_app",

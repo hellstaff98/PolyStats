@@ -11,6 +11,7 @@ sqlalchemy = {extras = ["asyncio"], version = "^2.0.45"}
 asyncpg = "^0.31.0"
 alembic = "^1.17.2"
 fastapi-users = {extras = ["sqlalchemy"], version = "^15.0.3"}
+httpx = "^0.28.1"
 
 
 [dependency-groups]

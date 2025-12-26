@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi_users import schemas
 from pydantic import BaseModel
 
@@ -5,15 +7,17 @@ from core.types.user_id import UserIdType
 
 
 class UserRead(schemas.BaseUser[UserIdType]):
-    pass
+    group_name: Optional[str]
+    group_id: Optional[str]
 
 
 class UserCreate(schemas.BaseUserCreate):
-    pass
+    group_name: str
 
 
 class UserUpdate(schemas.BaseUserUpdate):
-    pass
+    group_name: Optional[str] = None
+    group_id: Optional[str] = None
 
 
 class UserRegisteredNotification(BaseModel):

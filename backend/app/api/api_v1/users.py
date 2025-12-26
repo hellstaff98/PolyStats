@@ -15,3 +15,4 @@ router = APIRouter(
 router.include_router(
     router=fastapi_users.get_users_router(UserRead, UserCreate)
 )
+

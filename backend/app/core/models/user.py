@@ -4,7 +4,7 @@ from fastapi_users_db_sqlalchemy import (
     SQLAlchemyBaseUserTable,
     SQLAlchemyUserDatabase as SQLAlchemyUserDatabaseGeneric,
 )
-from sqlalchemy import select
+from sqlalchemy import select, Column, String
 from sqlalchemy.orm import relationship, Mapped
 
 from core.types.user_id import UserIdType
@@ -28,6 +28,9 @@ class User(Base, IdIntPkMixin, SQLAlchemyBaseUserTable[int]):
     access_tokens: Mapped[list["AccessToken"]] = relationship(
         back_populates="user",
     )
+    group_name = Column(String, nullable=True)
+    group_id = Column(String, nullable=True)
+    subjects = relationship("Subject", back_populates="user", cascade="all, delete-orphan")
 
     @classmethod
     def get_db(cls, session: "AsyncSession"):
