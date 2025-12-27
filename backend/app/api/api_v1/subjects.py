@@ -23,7 +23,6 @@ async def add_custom_subject(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Добавить предмет вручную (например если не загрузился сам или нет в расписании)"""
     new_subject = Subject(
         name=subject_data.name,
         user_id=user.id
@@ -48,7 +47,6 @@ async def delete_subject(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Удалить предмет целиком вместе со всеми активностями"""
     stmt = select(Subject).where(Subject.id == subject_id, Subject.user_id == user.id)
     result = await session.execute(stmt)
     subject = result.scalar_one_or_none()
@@ -69,7 +67,6 @@ async def get_subjects_list(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Краткий список всех предметов пользователя"""
     stmt = (
         select(Subject)
         .options(selectinload(Subject.activities))
@@ -99,7 +96,6 @@ async def get_subject_details(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Получить подробную информацию о предмете и его активностях"""
     stmt = (
         select(Subject)
         .options(selectinload(Subject.activities))
@@ -129,7 +125,6 @@ async def add_activity_to_subject(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Добавить активность к предмету"""
     stmt = select(Subject).where(Subject.id == subject_id, Subject.user_id == user.id)
     res = await session.execute(stmt)
     if not res.scalar_one_or_none():
@@ -148,7 +143,6 @@ async def delete_activity(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Полностью удалить активность"""
     stmt = (
         select(Activity)
         .join(Subject)
@@ -171,7 +165,6 @@ async def increment_activity_progress(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Увеличить текущий прогресс активности на 1"""
     stmt = (
         select(Activity)
         .join(Subject)
@@ -197,7 +190,6 @@ async def decrement_activity_progress(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Уменьшить текущий прогресс активности на 1"""
     stmt = (
         select(Activity)
         .join(Subject)
