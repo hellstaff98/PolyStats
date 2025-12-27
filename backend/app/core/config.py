@@ -30,9 +30,9 @@ class ApiPrefix(BaseModel):
 
 class DatabaseConfig(BaseModel):
     url: PostgresDsn
-    echo: bool = False,
-    echo_pool: bool = False,
-    max_overflow: int = 10,
+    echo: bool = False
+    echo_pool: bool = False
+    max_overflow: int = 10
     pool_size: int = 50
 
     naming_convention: dict[str, str] = {

@@ -31,7 +31,15 @@ async def add_custom_subject(
     session.add(new_subject)
     await session.commit()
     await session.refresh(new_subject)
-    return new_subject
+
+    # Формируем словарь для Pydantic
+    subject_dict = {
+        "id": new_subject.id,
+        "name": new_subject.name,
+        "user_id": new_subject.user_id,
+        "activities": [],
+    }
+    return SubjectRead.model_validate(subject_dict)
 
 
 @router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -68,7 +76,21 @@ async def get_subjects_list(
         .where(Subject.user_id == user.id)
     )
     result = await session.execute(stmt)
-    return result.scalars().all()
+    subjects = result.scalars().all()
+
+    subjects_list = []
+    for s in subjects:
+        subject_dict = {
+            "id": s.id,
+            "name": s.name,
+            "user_id": s.user_id,
+            "activities": [
+                ActivityRead.model_validate(a) for a in getattr(s, "activities", [])
+            ]
+        }
+        subjects_list.append(SubjectRead.model_validate(subject_dict))
+
+    return subjects_list
 
 
 @router.get("/{subject_id}", response_model=SubjectRead)
@@ -88,7 +110,16 @@ async def get_subject_details(
 
     if not subject:
         raise HTTPException(status_code=404, detail="Предмет не найден")
-    return subject
+
+    subject_dict = {
+        "id": subject.id,
+        "name": subject.name,
+        "user_id": subject.user_id,
+        "activities": [
+            ActivityRead.model_validate(a) for a in getattr(subject, "activities", [])
+        ]
+    }
+    return SubjectRead.model_validate(subject_dict)
 
 
 @router.post("/{subject_id}/activity-add", response_model=ActivityRead)
@@ -108,7 +139,8 @@ async def add_activity_to_subject(
     session.add(new_act)
     await session.commit()
     await session.refresh(new_act)
-    return new_act
+    return ActivityRead.model_validate(new_act)
+
 
 @router.delete("/activities/{activity_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_activity(
@@ -130,8 +162,8 @@ async def delete_activity(
 
     await session.delete(activity)
     await session.commit()
-
     return None
+
 
 @router.patch("/activities/{activity_id}/plus", response_model=ActivityRead)
 async def increment_activity_progress(
@@ -156,7 +188,8 @@ async def increment_activity_progress(
         await session.commit()
         await session.refresh(activity)
 
-    return activity
+    return ActivityRead.model_validate(activity)
+
 
 @router.patch("/activities/{activity_id}/minus", response_model=ActivityRead)
 async def decrement_activity_progress(
@@ -181,4 +214,4 @@ async def decrement_activity_progress(
         await session.commit()
         await session.refresh(activity)
 
-    return activity
+    return ActivityRead.model_validate(activity)

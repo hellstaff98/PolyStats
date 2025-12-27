@@ -30,3 +30,7 @@ filterwarnings = [
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = [
+    "aiosqlite (>=0.22.1,<0.23.0)"
+]
