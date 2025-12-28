@@ -51,4 +51,4 @@ def test_decrement_logic_mock():
     act_zero = MockActivity(current=0)
     if act_zero.current_progress > 0:
         act_zero.current_progress -= 1
-    assert act_zero.current_progress == 0  # Не ушло в -1
+    assert act_zero.current_progress == 0
