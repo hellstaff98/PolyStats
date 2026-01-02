@@ -214,3 +214,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+certbot/conf/
+certbot/www/
+certbot/logs/
+
+*.pem
