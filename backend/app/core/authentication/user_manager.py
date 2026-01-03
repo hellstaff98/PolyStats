@@ -18,7 +18,7 @@ from services.unversity import uni_service
 #from utils.webhooks.user import send_new_user_notification
 
 
-from fastapi import Request, BackgroundTasks
+from fastapi import Request, BackgroundTasks, HTTPException
 from fastapi_users.password import PasswordHelperProtocol
 
 log = logging.getLogger(__name__)
@@ -40,29 +40,24 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, UserIdType]):
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         session = self.user_db.session
         try:
-            # 1. Получаем ID группы (возвращает int)
             ext_group_id = await uni_service.get_group_id_by_number(user.group_name)
 
-            # 2. Сохраняем ID как строку (чтобы не было конфликта типов в БД)
             user.group_id = str(ext_group_id)
-            session.add(user)
 
-            # 3. Получаем список уникальных предметов
             subjects_names = await uni_service.get_subjects_list(ext_group_id)
 
-            # 4. Создаем записи в таблице subjects
             for name in subjects_names:
-                new_subject = Subject(
-                    name=name,
-                    user_id=user.id
-                )
+                new_subject = Subject(name=name, user_id=user.id)
                 session.add(new_subject)
 
             await session.commit()
 
         except Exception as e:
             await session.rollback()
-            print(f"Registration sync error: {e}")
+            await session.delete(user)
+            await session.commit()
+
+            raise e
 
     # async def on_after_forgot_password(
     #     self,

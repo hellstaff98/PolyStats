@@ -16,7 +16,7 @@ class UniversityService:
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.get(url, params=params, timeout=10.0)
-                response.raise_for_status() # Выбросит исключение при 4xx или 5xx ошибках
+                response.raise_for_status()
             except httpx.HTTPError as e:
                 # Если API университета недоступно
                 print(f"University API Error: {e}")
@@ -30,12 +30,10 @@ class UniversityService:
 
         if not groups:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Группа '{group_name}' не найдена"
             )
 
-        # Берем первую группу из списка совпадений
-        # В идеале можно проверить точное совпадение имен, если их несколько
         target_group = groups[0]
 
         return target_group["id"]
@@ -58,7 +56,6 @@ class UniversityService:
         target_date_str = self._get_mid_semester_date()
         target_date = datetime.strptime(target_date_str, "%Y-%m-%d")
 
-        # Нам нужно проверить 2 недели, чтобы поймать "число/знаменатель"
         dates_to_check = [
             target_date_str,
             (target_date + timedelta(days=7)).strftime("%Y-%m-%d")
@@ -76,17 +73,14 @@ class UniversityService:
                     response.raise_for_status()
                     data = response.json()
 
-                    # Идем по дням и урокам
                     for day in data.get("days", []):
                         for lesson in day.get("lessons", []):
                             subject_name = lesson.get("subject")
                             if subject_name:
-                                # Очищаем от лишних пробелов, если они есть
                                 unique_subjects.add(subject_name.strip())
 
                 except Exception as e:
                     print(f"Error fetching schedule for {date_param}: {e}")
-                    # Если одна неделя упала, пробуем вторую, не прерывая процесс
                     continue
 
         return list(unique_subjects)
