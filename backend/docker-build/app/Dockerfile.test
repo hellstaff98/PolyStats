@@ -1,0 +1,25 @@
+FROM python:3.12-slim
+
+# Установка зависимостей для сборки некоторых python-пакетов
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install poetry
+
+WORKDIR /app
+
+# Отключаем виртуальные окружения, ставим пакеты прямо в систему контейнера
+RUN poetry config virtualenvs.create false
+
+# Копируем файлы зависимостей из корня backend/
+COPY pyproject.toml poetry.lock ./
+
+# Устанавливаем все зависимости (включая dev-зависимости для pytest)
+RUN poetry install --no-interaction --no-ansi
+
+# Копируем всё содержимое папки backend в /app контейнера
+COPY . .
+
+CMD ["pytest"]

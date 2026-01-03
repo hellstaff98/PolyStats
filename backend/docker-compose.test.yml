@@ -1,0 +1,31 @@
+services:
+  test-runner:
+    build:
+      context: .
+      dockerfile: docker-build/app/Dockerfile.test
+    environment:
+      - PYTHONPATH=.:/app:/app/app
+
+      - APP_CONFIG__DB__URL=postgresql+asyncpg://postgres:postgres@test-db:5432/postgres
+      - APP_CONFIG__ACCESS_TOKEN__RESET_PASSWORD_TOKEN_SECRET=test_reset_secret_key_777
+      - APP_CONFIG__ACCESS_TOKEN__VERIFICATION_TOKEN_SECRET=test_verify_secret_key_777
+
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      test-db:
+        condition: service_healthy
+    command: pytest tests
+
+  test-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "5433:5432"

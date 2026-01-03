@@ -23,7 +23,6 @@ async def add_custom_subject(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Добавить предмет вручную (например если не загрузился сам или нет в расписании)"""
     new_subject = Subject(
         name=subject_data.name,
         user_id=user.id
@@ -31,7 +30,15 @@ async def add_custom_subject(
     session.add(new_subject)
     await session.commit()
     await session.refresh(new_subject)
-    return new_subject
+
+    # Формируем словарь для Pydantic
+    subject_dict = {
+        "id": new_subject.id,
+        "name": new_subject.name,
+        "user_id": new_subject.user_id,
+        "activities": [],
+    }
+    return SubjectRead.model_validate(subject_dict)
 
 
 @router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -40,7 +47,6 @@ async def delete_subject(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Удалить предмет целиком вместе со всеми активностями"""
     stmt = select(Subject).where(Subject.id == subject_id, Subject.user_id == user.id)
     result = await session.execute(stmt)
     subject = result.scalar_one_or_none()
@@ -61,14 +67,27 @@ async def get_subjects_list(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Краткий список всех предметов пользователя"""
     stmt = (
         select(Subject)
         .options(selectinload(Subject.activities))
         .where(Subject.user_id == user.id)
     )
     result = await session.execute(stmt)
-    return result.scalars().all()
+    subjects = result.scalars().all()
+
+    subjects_list = []
+    for s in subjects:
+        subject_dict = {
+            "id": s.id,
+            "name": s.name,
+            "user_id": s.user_id,
+            "activities": [
+                ActivityRead.model_validate(a) for a in getattr(s, "activities", [])
+            ]
+        }
+        subjects_list.append(SubjectRead.model_validate(subject_dict))
+
+    return subjects_list
 
 
 @router.get("/{subject_id}", response_model=SubjectRead)
@@ -77,7 +96,6 @@ async def get_subject_details(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Получить подробную информацию о предмете и его активностях"""
     stmt = (
         select(Subject)
         .options(selectinload(Subject.activities))
@@ -88,7 +106,16 @@ async def get_subject_details(
 
     if not subject:
         raise HTTPException(status_code=404, detail="Предмет не найден")
-    return subject
+
+    subject_dict = {
+        "id": subject.id,
+        "name": subject.name,
+        "user_id": subject.user_id,
+        "activities": [
+            ActivityRead.model_validate(a) for a in getattr(subject, "activities", [])
+        ]
+    }
+    return SubjectRead.model_validate(subject_dict)
 
 
 @router.post("/{subject_id}/activity-add", response_model=ActivityRead)
@@ -98,7 +125,6 @@ async def add_activity_to_subject(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Добавить активность к предмету"""
     stmt = select(Subject).where(Subject.id == subject_id, Subject.user_id == user.id)
     res = await session.execute(stmt)
     if not res.scalar_one_or_none():
@@ -108,7 +134,8 @@ async def add_activity_to_subject(
     session.add(new_act)
     await session.commit()
     await session.refresh(new_act)
-    return new_act
+    return ActivityRead.model_validate(new_act)
+
 
 @router.delete("/activities/{activity_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_activity(
@@ -116,7 +143,6 @@ async def delete_activity(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Полностью удалить активность"""
     stmt = (
         select(Activity)
         .join(Subject)
@@ -130,8 +156,8 @@ async def delete_activity(
 
     await session.delete(activity)
     await session.commit()
-
     return None
+
 
 @router.patch("/activities/{activity_id}/plus", response_model=ActivityRead)
 async def increment_activity_progress(
@@ -139,7 +165,6 @@ async def increment_activity_progress(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Увеличить текущий прогресс активности на 1"""
     stmt = (
         select(Activity)
         .join(Subject)
@@ -156,7 +181,8 @@ async def increment_activity_progress(
         await session.commit()
         await session.refresh(activity)
 
-    return activity
+    return ActivityRead.model_validate(activity)
+
 
 @router.patch("/activities/{activity_id}/minus", response_model=ActivityRead)
 async def decrement_activity_progress(
@@ -164,7 +190,6 @@ async def decrement_activity_progress(
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    """Уменьшить текущий прогресс активности на 1"""
     stmt = (
         select(Activity)
         .join(Subject)
@@ -181,4 +206,4 @@ async def decrement_activity_progress(
         await session.commit()
         await session.refresh(activity)
 
-    return activity
+    return ActivityRead.model_validate(activity)
