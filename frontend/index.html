@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.cdnfonts.com/css/bebas-neue" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/roboto-flex" rel="stylesheet">
+    <title>PolyStats</title>
+    <style>
+        body {
+            background-color: #151515;
+            color: #ffffff;
+            font-family: 'Bebas Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            color: #00FF73;
+        }
+
+        p {
+            font-size: 1.2rem;
+	    font-family: 'Roboto Flex', sans-serif;
+            color: #fff;
+	    letter-spacing: 3px;
+	    font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .api-link {
+            margin-top: 30px;
+            display: inline-block;
+            padding: 10px 20px;
+	    letter-spacing: 2px;
+            font-family: 'Roboto Flex', sans-serif;
+            color: #AEAEB2;
+            text-decoration: underline;
+	    text-underline-offset: 3px; 
+            border-radius: 5px;
+            transition: 0.3s;
+            
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            from { text-shadow: 0 0 10px #fff, 0 0 20px #0fa; }
+            to { text-shadow: 0 0 20px #fff, 0 0 40px #0fa, 0 0 60px #0fa; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PolyStats</h1>
+        <p>Coming soon...</p>
+        <a href="/api/docs" class="api-link">Документация API</a>
+    </div>
+</body>
+</html>

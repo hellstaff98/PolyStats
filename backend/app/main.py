@@ -16,12 +16,17 @@ async def lifespan(app: FastAPI):
 
 main_app = FastAPI(
     lifespan=lifespan,
+    title="PolyStats API",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    root_path=settings.api.prefix
 )
-main_app.include_router(api_router, prefix=settings.api.prefix)
+main_app.include_router(api_router)
 
 @main_app.get('/')
 def root():
-    return {"message": "приветик"}
+    return {"message": "приветик", "version": settings.api.v1.prefix}
 
 if __name__ == '__main__':
     uvicorn.run("main:main_app",
